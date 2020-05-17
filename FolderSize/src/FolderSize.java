@@ -3,64 +3,52 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public class FolderSize {
-    private static long fileSizeBytes = 0;
-    private final static Path myFolder = Paths.get("C:\\Users\\User\\Desktop\\Замечания_по сайту");
-    private static Path currentFile;
+    private static long fileSize = 0;
+    private static double fileSizeBytes;
+    private static double fileSizeKb;
+    private static double fileSizeMb;
+    private static double fileSizeGb;
+
+    private final static Path myFolder = Paths.get("C:\\Users\\User\\Desktop\\Java");
 
     public static void main(String[] args) {
         try {
             Files.walkFileTree(myFolder, new SimpleFileVisitor<>() {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
-                    currentFile = file;
-                    fileSizeBytes = fileSizeBytes + attr.size();
+                    fileSize = fileSize + attr.size();
                     return FileVisitResult.CONTINUE;
                 }
             });
-            printSizeBytes();
-            printSizeKilobytes();
-            printSizeMegabytes();
-            printSizeGigabytes();
+            fileSizeBytes = (double) fileSize;
+            fileSizeKb = fileSizeBytes / 1024;
+            fileSizeMb = fileSizeKb / 1024;
+            fileSizeGb = fileSizeMb / 1024;
+
+            printSize(fileSizeBytes);
+            printSize(fileSizeKb);
+            printSize(fileSizeMb);
+            printSize(fileSizeGb);
         }
         catch (IOException e) {
-            System.out.println("Файл " + myFolder + " не найден");
+            System.out.println("IOException was thrown!");
         }
         catch (SecurityException e){
-            System.out.println("Файл " + currentFile + " скрыт. Невозможно посчитать размер всех файлов");
+            System.out.println("The security manager denies access to the starting file " + myFolder+ "!");
         }
     }
 
-    private static void printSizeBytes() {
-            System.out.printf("Размер папки " + myFolder + " составил %,d байт%n", fileSizeBytes);
-    }
+    private static void printSize(double fileSize) {
+        String size = "";
 
-    private static void printSizeKilobytes() {
-            if (fileSizeBytes / 1024 != 0) {
-                long fileSizeKb = fileSizeBytes / 1024;
-                System.out.printf("Размер папки " + myFolder + " составил %,d килобайт%n", fileSizeKb);
-            } else {
-                double fileSizeKb = (double) fileSizeBytes / 1024;
-                System.out.printf("Размер папки " + myFolder + " составил %.0g килобайт%n", fileSizeKb);
-            }
-    }
+        if (fileSize == fileSizeBytes) size = "байт";
+        else if (fileSize == fileSizeKb) size = "килобайт";
+        else if (fileSize == fileSizeMb) size = "мегабайт";
+        else size = "гигабайт";
 
-    private static void printSizeMegabytes() {
-            if (fileSizeBytes / 1024 / 1024 != 0) {
-            long fileSizeMb = fileSizeBytes / 1024 / 1024;
-            System.out.printf("Размер папки " + myFolder + " составил %,d мегабайт%n", fileSizeMb);
-            } else {
-            double fileSizeMb = (double) fileSizeBytes / 1024 / 1024;
-            System.out.printf("Размер папки " + myFolder + " составил %.0g мегабайт%n", fileSizeMb);
-            }
-    }
-
-    private static void printSizeGigabytes(){
-            if (fileSizeBytes / 1024 / 1024 / 1024 != 0) {
-            long fileSizeGb = fileSizeBytes / 1024 / 1024 / 1024;
-            System.out.printf("Размер папки " + myFolder + " составил %,d гигабайт%n", fileSizeGb);
-            }
-            else {
-            double fileSizeGb = (double) fileSizeBytes / 1024 / 1024 / 1024;
-            System.out.printf("Размер папки " + myFolder + " составил %.0g гигабайт%n", fileSizeGb);
-            }
+        if (fileSize < 1) System.out.printf("Размер папки " + myFolder + " составил %.2g " + size + "\n", fileSize);
+        else if (fileSize > 1 && fileSize < 10) {
+               System.out.printf("Размер папки " + myFolder + " составил %.2f " + size + "\n", fileSize);
+        }
+        else  {System.out.printf("Размер папки " + myFolder + " составил %.0f " + size + "\n", fileSize);}
     }
 }
