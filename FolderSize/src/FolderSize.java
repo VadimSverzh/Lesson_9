@@ -4,51 +4,74 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 public class FolderSize {
     private static long fileSize = 0;
-    private static double fileSizeBytes;
-    private static double fileSizeKb;
-    private static double fileSizeMb;
-    private static double fileSizeGb;
-
-    private final static Path myFolder = Paths.get("C:\\Users\\User\\Desktop\\Java");
 
     public static void main(String[] args) {
+
+        Path myFolder = Paths.get("C:\\Users\\User\\Desktop\\Java");
+
+        long folderSize = calculateFolderSize(myFolder);
+        String readableSize = getHumanReadableSize(FileSize.BYTE, folderSize);
+        printHumanReadableSize(myFolder, readableSize);
+
+        printHumanReadableSize(myFolder, getHumanReadableSize(FileSize.KILOBYTE, folderSize));
+        printHumanReadableSize(myFolder, getHumanReadableSize(FileSize.MEGABYTE, folderSize));
+        printHumanReadableSize(myFolder, getHumanReadableSize(FileSize.GIGABYTE, folderSize));
+
+    }
+
+    private static long calculateFolderSize(Path folder) {
         try {
-            Files.walkFileTree(myFolder, new SimpleFileVisitor<>() {
+            Files.walkFileTree(folder, new SimpleFileVisitor<>() {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
                     fileSize = fileSize + attr.size();
                     return FileVisitResult.CONTINUE;
                 }
             });
-            fileSizeBytes = (double) fileSize;
-            fileSizeKb = fileSizeBytes / 1024;
-            fileSizeMb = fileSizeKb / 1024;
-            fileSizeGb = fileSizeMb / 1024;
-
-            printSize(fileSizeBytes);
-            printSize(fileSizeKb);
-            printSize(fileSizeMb);
-            printSize(fileSizeGb);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("IOException was thrown!");
+        } catch (SecurityException e) {
+            System.out.println("The security manager denies access to the starting file " + folder + "!");
         }
-        catch (SecurityException e){
-            System.out.println("The security manager denies access to the starting file " + myFolder+ "!");
-        }
+        return fileSize;
     }
 
-    private static void printSize(double fileSize) {
+    private static String getHumanReadableSize(FileSize sizeType, double fileSize) {
         String size = "";
+        double sizeForString = 0.0;
 
-        if (fileSize == fileSizeBytes) size = "байт";
-        else if (fileSize == fileSizeKb) size = "килобайт";
-        else if (fileSize == fileSizeMb) size = "мегабайт";
-        else size = "гигабайт";
-
-        if (fileSize < 1) System.out.printf("Размер папки " + myFolder + " составил %.2g " + size + "\n", fileSize);
-        else if (fileSize > 1 && fileSize < 10) {
-               System.out.printf("Размер папки " + myFolder + " составил %.2f " + size + "\n", fileSize);
+        switch (sizeType) {
+            case BYTE:
+                sizeForString = fileSize;
+                size = "байт";
+                break;
+            case KILOBYTE:
+                sizeForString = fileSize / 1024;
+                size = "килобайт";
+                break;
+            case MEGABYTE:
+                sizeForString = fileSize / 1024 / 1024;
+                size = "мегабайт";
+                break;
+            case GIGABYTE:
+                sizeForString = fileSize / 1024 / 1024 / 1024;
+                size = "гигабайт";
+                break;
         }
-        else  {System.out.printf("Размер папки " + myFolder + " составил %.0f " + size + "\n", fileSize);}
+
+        if (sizeForString < 1) {
+            return String.format("%.2g " + size, sizeForString);
+        } else if (sizeForString > 1 && fileSize < 10) {
+            return String.format("%.2f " + size, sizeForString);
+        } else {
+            return String.format("%.0f " + size, sizeForString);
+        }
     }
+
+    private static void printHumanReadableSize (Path folder, String size) {
+        System.out.println("Размер папки " + folder + " составил " + size);
+    }
+
 }
+
+
+
