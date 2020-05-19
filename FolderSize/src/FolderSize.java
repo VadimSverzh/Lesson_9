@@ -7,15 +7,11 @@ public class FolderSize {
 
     public static void main(String[] args) {
 
-        Path myFolder = Paths.get("C:\\Users\\User\\Desktop\\Java");
+        Path myFolder = Paths.get("C:\\Users\\User\\Desktop\\Полиграфия_и_макеты");
 
         long folderSize = calculateFolderSize(myFolder);
-        String readableSize = getHumanReadableSize(FileSize.BYTE, folderSize);
+        String readableSize = getHumanReadableSize(folderSize);
         printHumanReadableSize(myFolder, readableSize);
-
-        printHumanReadableSize(myFolder, getHumanReadableSize(FileSize.KILOBYTE, folderSize));
-        printHumanReadableSize(myFolder, getHumanReadableSize(FileSize.MEGABYTE, folderSize));
-        printHumanReadableSize(myFolder, getHumanReadableSize(FileSize.GIGABYTE, folderSize));
 
     }
 
@@ -35,42 +31,34 @@ public class FolderSize {
         return fileSize;
     }
 
-    private static String getHumanReadableSize(FileSize sizeType, double fileSize) {
-        String size = "";
-        double sizeForString = 0.0;
+    private static String getHumanReadableSize(double fileSize) {
+        String[] size = {"байт", "килобайт", "мегабайт", "гигабайт"};
+        double sizeForString = fileSize;
+        int i;
 
-        switch (sizeType) {
-            case BYTE:
-                sizeForString = fileSize;
-                size = "байт";
+        for (i = 0; i < 4; i++) {
+            if (sizeForString < 1000 || i == 3){
                 break;
-            case KILOBYTE:
-                sizeForString = fileSize / 1024;
-                size = "килобайт";
-                break;
-            case MEGABYTE:
-                sizeForString = fileSize / 1024 / 1024;
-                size = "мегабайт";
-                break;
-            case GIGABYTE:
-                sizeForString = fileSize / 1024 / 1024 / 1024;
-                size = "гигабайт";
-                break;
+            }
+            else {
+                sizeForString = sizeForString / 1024;
+            }
         }
 
         if (sizeForString < 1) {
-            return String.format("%.2g " + size, sizeForString);
-        } else if (sizeForString > 1 && fileSize < 10) {
-            return String.format("%.2f " + size, sizeForString);
-        } else {
-            return String.format("%.0f " + size, sizeForString);
+            return String.format("%.2g " + size[i], sizeForString);
+        }
+        else if (sizeForString > 1 && sizeForString < 10) {
+            return String.format("%.2f " + size[i], sizeForString);
+        }
+        else {
+            return String.format("%.0f " + size[i], sizeForString);
         }
     }
 
     private static void printHumanReadableSize (Path folder, String size) {
         System.out.println("Размер папки " + folder + " составил " + size);
     }
-
 }
 
 
