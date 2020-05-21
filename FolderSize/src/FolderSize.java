@@ -7,7 +7,7 @@ public class FolderSize {
 
     public static void main(String[] args) {
 
-        Path myFolder = Paths.get("C:\\Users\\User\\Desktop\\Полиграфия_и_макеты");
+        Path myFolder = Paths.get("C:\\Users\\User\\Desktop\\Свет_и_очаг");
 
         long folderSize = calculateFolderSize(myFolder);
         String readableSize = getHumanReadableSize(folderSize);
@@ -33,27 +33,10 @@ public class FolderSize {
 
     private static String getHumanReadableSize(double fileSize) {
         String[] size = {"байт", "килобайт", "мегабайт", "гигабайт"};
-        double sizeForString = fileSize;
-        int i;
+        final int UNIT = 1024;
 
-        for (i = 0; i < 4; i++) {
-            if (sizeForString < 1000 || i == 3){
-                break;
-            }
-            else {
-                sizeForString = sizeForString / 1024;
-            }
-        }
-
-        if (sizeForString < 1) {
-            return String.format("%.2g " + size[i], sizeForString);
-        }
-        else if (sizeForString > 1 && sizeForString < 10) {
-            return String.format("%.2f " + size[i], sizeForString);
-        }
-        else {
-            return String.format("%.0f " + size[i], sizeForString);
-        }
+        int i = (int) (Math.log(fileSize) / Math.log(UNIT));
+        return String.format("%.2f %s", fileSize / (Math.pow(UNIT, i)), size[i]);
     }
 
     private static void printHumanReadableSize (Path folder, String size) {
