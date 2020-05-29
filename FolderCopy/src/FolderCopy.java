@@ -5,12 +5,12 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class FolderCopy {
 
-    private final static boolean overwrite = true;
-    private final static Path source = Paths.get("C:\\Users\\User\\Desktop\\Свет_и_очаг");
-    private final static Path target = Paths.get("C:\\Users\\User\\Desktop\\Свет_и_очаг_2");
+    private final static boolean OVERWRITE = true;
+    private final static Path SOURCE = Paths.get("fff\\");
+    private final static Path TARGET = Paths.get("fff\\g");
 
     public static void main(String[] args) {
-            copyFile(source, target, overwrite);
+            copyFile(SOURCE, TARGET, OVERWRITE);
     }
         private static void copyFile(Path source, Path target, boolean overwrite) {
             try {
