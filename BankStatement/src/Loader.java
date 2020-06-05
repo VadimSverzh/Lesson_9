@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,8 +44,8 @@ public class Loader {
                     System.out.println("Error!");
                 }
 
-                Double income = Double.parseDouble(transactionInfoArray[INCOME_COLUMN_INDEX]);
-                Double expenditure = Double.parseDouble(transactionInfoArray[EXPENDITURE_COLUMN_INDEX]);
+                String income = transactionInfoArray[INCOME_COLUMN_INDEX];
+                String expenditure = transactionInfoArray[EXPENDITURE_COLUMN_INDEX];
                 String[] itemOfExpenditure = transactionInfoArray[ITEM_OF_EXPENDITURE_COLUMN_INDEX]
                         .split(SPLIT_ITEM_OF_EXPENDITURE_REGEX);
                 String itemOfExpenditureCleaned = itemOfExpenditure[itemOfExpenditure.length - 1]
@@ -58,27 +59,27 @@ public class Loader {
 
     private static void getExpendituresList(List<BankTransaction> transaction) {
         System.out.printf("%-30s%10s\n\n", "Cтатья расходов", "Сумма, руб.");
-        for (BankTransaction bank : transaction) {
-            if (bank.getExpenditure() > 0.0) {
-                System.out.printf("%-30s%,10.2f\n", bank.getItemOfExpenditure(), bank.getExpenditure());
+        final String ZERO_EXPENDITURES_CHECK_REGEX = "0(\\.00)*";
+        for (BankTransaction bankTransaction : transaction) {
+            if (!(bankTransaction.getExpenditure().toString().matches(ZERO_EXPENDITURES_CHECK_REGEX))) {
+                System.out.printf("%-30s%,10.2f\n", bankTransaction.getItemOfExpenditure(), bankTransaction.getExpenditure());
             }
         }
     }
 
     private static void getExpendituresSum(List<BankTransaction> transaction){
-        double expenditureSum = 0.0;
+        BigDecimal expenditureSum = new BigDecimal("0.00");
         for (BankTransaction bank: transaction){
-            expenditureSum = expenditureSum + bank.getExpenditure();
+            expenditureSum = expenditureSum.add(bank.getExpenditure());
         }
         System.out.printf("%-30s%,10.2f\n", "ОБЩИЙ РАСХОД ", expenditureSum);
     }
 
     private static void getIncomeSum(List<BankTransaction> transaction) {
-        double incomeSum = 0.0;
+        BigDecimal incomeSum = new BigDecimal("0.00");
         for (BankTransaction bank : transaction) {
-            incomeSum = incomeSum + bank.getIncome();
+            incomeSum = incomeSum.add(bank.getIncome());
         }
         System.out.printf("%-30s%,10.2f\n", "ОБЩИЙ ПРИХОД ", incomeSum);
     }
-
 }
