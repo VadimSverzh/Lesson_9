@@ -2,12 +2,16 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Loader {
     private static final Path TRANSACTIONS_PATH = Paths.get("data/movementList.csv");
-    private static final List<BankTransaction> TRANSACTIONS_LIST = new ArrayList<>();
+
+    private static final String EXPENDITURE_SUM_STRING = "Сумма расходов: ";
+    private static final String INCOME_SUM_STRING = "Сумма доходов: ";
+
+    private static final String EXPENDITURE_HEADER = "Суммы расходов по организациям: ";
+    private static final String INCOME_HEADER = "Суммы доходов по организациям: ";
 
     private static final int COLUMNS_AMOUNT_IN_TRANSACTIONS_LIST = 8;
     private static final int INCOME_COLUMN_INDEX = 6;
@@ -21,20 +25,30 @@ public class Loader {
     private static final String SPLIT_ITEM_OF_EXPENDITURE_DETAILED_REGEX = "\\s{2,}";
 
     public static void main(String[] args) {
-        readTransactions(TRANSACTIONS_PATH,2, TRANSACTIONS_LIST);
-        getExpendituresList(TRANSACTIONS_LIST);
-        getExpendituresSum(TRANSACTIONS_LIST);
-        getIncomeSum(TRANSACTIONS_LIST);
+        List <BankTransaction> transactions = readTransactions(TRANSACTIONS_PATH);
+
+        BigDecimal expenditures = getExpendituresSum(transactions);
+        BigDecimal income = getIncomeSum(transactions);
+        printSum(EXPENDITURE_SUM_STRING, expenditures);
+        printSum(INCOME_SUM_STRING, income);
+        System.out.println();
+
+        Map<String, BigDecimal> expendituresList = getExpendituresList(transactions);
+        printItemDetailed(EXPENDITURE_HEADER, expendituresList);
+
     }
 
-    private static void readTransactions(Path transactionsPath, int startLine, List<BankTransaction> transactionsList) {
+    private static List <BankTransaction> readTransactions (Path transactionsPath) {
+        final int START_LINE = 2;
+
+        List<BankTransaction> transactionsList = new ArrayList<>();
         List<String> operation;
         String[] transactionInfoArray;
 
         try {
             operation = Files.readAllLines(transactionsPath);
 
-            for (int i = startLine - 1; i < operation.size(); i++) {
+            for (int i = START_LINE - 1; i < operation.size(); i++) {
                 String transactionLine = operation.get(i);
                 String transactionLineWithoutQuotes = transactionLine
                         .replaceAll(CLEAN_TRANSACTION_LINE_FROM_QUOTES_REGEX, "$1.$2");
@@ -44,42 +58,58 @@ public class Loader {
                     System.out.println("Error!");
                 }
 
-                String income = transactionInfoArray[INCOME_COLUMN_INDEX];
-                String expenditure = transactionInfoArray[EXPENDITURE_COLUMN_INDEX];
+                BigDecimal income = new BigDecimal(transactionInfoArray[INCOME_COLUMN_INDEX]);
+                BigDecimal expenditure = new BigDecimal(transactionInfoArray[EXPENDITURE_COLUMN_INDEX]);
                 String[] itemOfExpenditure = transactionInfoArray[ITEM_OF_EXPENDITURE_COLUMN_INDEX]
                         .split(SPLIT_ITEM_OF_EXPENDITURE_REGEX);
                 String itemOfExpenditureCleaned = itemOfExpenditure[itemOfExpenditure.length - 1]
                         .split(SPLIT_ITEM_OF_EXPENDITURE_DETAILED_REGEX)[DETAILED_ITEM_OF_EXPENDITURE_INDEX].trim();
                 transactionsList.add(new BankTransaction(income, expenditure, itemOfExpenditureCleaned));
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return transactionsList;
     }
 
-    private static void getExpendituresList(List<BankTransaction> transaction) {
-        System.out.printf("%-30s%10s\n\n", "Cтатья расходов", "Сумма, руб.");
-        final String ZERO_EXPENDITURES_CHECK_REGEX = "0(\\.00)*";
+    private static Map <String, BigDecimal> getExpendituresList(List<BankTransaction> transaction) {
+        Map<String, BigDecimal> expenditures = new HashMap<>();
+
+        final BigDecimal ZERO_EXPENDITURES = new BigDecimal("0.00");
+
         for (BankTransaction bankTransaction : transaction) {
-            if (!(bankTransaction.getExpenditure().toString().matches(ZERO_EXPENDITURES_CHECK_REGEX))) {
-                System.out.printf("%-30s%,10.2f\n", bankTransaction.getItemOfExpenditure(), bankTransaction.getExpenditure());
+
+            String itemOfExpenditure = bankTransaction.getItemOfExpenditure();
+            BigDecimal expenditure = bankTransaction.getExpenditure();
+
+            if (!(expenditure.equals(ZERO_EXPENDITURES))) {
+                if (expenditures.containsKey(itemOfExpenditure)) {
+                    expenditures.put(itemOfExpenditure, expenditures.get(itemOfExpenditure).add(expenditure));
+                }
+                else expenditures.put(itemOfExpenditure, expenditure);
             }
         }
+        return expenditures;
     }
 
-    private static void getExpendituresSum(List<BankTransaction> transaction){
-        BigDecimal expenditureSum = new BigDecimal("0.00");
-        for (BankTransaction bank: transaction){
-            expenditureSum = expenditureSum.add(bank.getExpenditure());
-        }
-        System.out.printf("%-30s%,10.2f\n", "ОБЩИЙ РАСХОД ", expenditureSum);
+    private static BigDecimal getExpendituresSum(List<BankTransaction> transaction){
+        return transaction.stream().map(BankTransaction::getExpenditure).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private static void getIncomeSum(List<BankTransaction> transaction) {
-        BigDecimal incomeSum = new BigDecimal("0.00");
-        for (BankTransaction bank : transaction) {
-            incomeSum = incomeSum.add(bank.getIncome());
-        }
-        System.out.printf("%-30s%,10.2f\n", "ОБЩИЙ ПРИХОД ", incomeSum);
+    private static BigDecimal getIncomeSum(List<BankTransaction> transaction) {
+        return transaction.stream().map(BankTransaction::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    private static void printSum(String item, BigDecimal sum) {
+        System.out.printf("%-30s%,10.2f%s\n", item, sum, " руб.");
+    }
+
+    private static void printItemDetailed(String itemInfo, Map <String, BigDecimal> itemsList) {
+        System.out.println(itemInfo);
+        for (Map.Entry<String, BigDecimal> list : itemsList.entrySet()) {
+            System.out.printf("%-30s%,10.2f%s\n", list.getKey(), list.getValue(), " руб.");
+        }
+    }
+
 }

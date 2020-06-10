@@ -1,22 +1,22 @@
 import java.math.BigDecimal;
 
 public class BankTransaction {
-    private String income;
-    private String expenditure;
+    private BigDecimal income;
+    private BigDecimal expenditure;
     private String itemOfExpenditure;
 
-    BankTransaction(String income, String expenditure, String itemOfExpenditure){
+    BankTransaction(BigDecimal income, BigDecimal expenditure, String itemOfExpenditure){
         this.income = income;
         this.expenditure = expenditure;
         this.itemOfExpenditure = itemOfExpenditure;
     }
 
     public BigDecimal getIncome() {
-        return new BigDecimal(this.income);
+        return this.income;
     }
 
     public BigDecimal getExpenditure() {
-        return new BigDecimal(this.expenditure);
+        return this.expenditure;
     }
 
     public String getItemOfExpenditure() {
