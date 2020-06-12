@@ -1,9 +1,9 @@
 import java.math.BigDecimal;
 
 public class BankTransaction {
-    private BigDecimal income;
-    private BigDecimal expenditure;
-    private String itemOfExpenditure;
+    private final BigDecimal income;
+    private final BigDecimal expenditure;
+    private final String itemOfExpenditure;
 
     BankTransaction(BigDecimal income, BigDecimal expenditure, String itemOfExpenditure){
         this.income = income;

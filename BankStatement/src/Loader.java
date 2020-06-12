@@ -3,6 +3,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Loader {
     private static final Path TRANSACTIONS_PATH = Paths.get("data/movementList.csv");
@@ -25,10 +27,10 @@ public class Loader {
     private static final String SPLIT_ITEM_OF_EXPENDITURE_DETAILED_REGEX = "\\s{2,}";
 
     public static void main(String[] args) {
-        List <BankTransaction> transactions = readTransactions(TRANSACTIONS_PATH);
+        List<BankTransaction> transactions = readTransactions(TRANSACTIONS_PATH);
 
-        BigDecimal expenditures = getExpendituresSum(transactions);
-        BigDecimal income = getIncomeSum(transactions);
+        BigDecimal expenditures = getSum(transactions, BankTransaction::getExpenditure);
+        BigDecimal income = getSum(transactions, BankTransaction::getIncome);
         printSum(EXPENDITURE_SUM_STRING, expenditures);
         printSum(INCOME_SUM_STRING, income);
         System.out.println();
@@ -38,7 +40,7 @@ public class Loader {
 
     }
 
-    private static List <BankTransaction> readTransactions (Path transactionsPath) {
+    private static List<BankTransaction> readTransactions(Path transactionsPath) {
         final int START_LINE = 2;
 
         List<BankTransaction> transactionsList = new ArrayList<>();
@@ -52,7 +54,7 @@ public class Loader {
                 String transactionLine = operation.get(i);
                 String transactionLineWithoutQuotes = transactionLine
                         .replaceAll(CLEAN_TRANSACTION_LINE_FROM_QUOTES_REGEX, "$1.$2");
-                transactionInfoArray = transactionLineWithoutQuotes.split(SPLIT_TRANSACTION_LINE_REGEX );
+                transactionInfoArray = transactionLineWithoutQuotes.split(SPLIT_TRANSACTION_LINE_REGEX);
 
                 if (transactionInfoArray.length != COLUMNS_AMOUNT_IN_TRANSACTIONS_LIST) {
                     System.out.println("Error!");
@@ -73,32 +75,18 @@ public class Loader {
         return transactionsList;
     }
 
-    private static Map <String, BigDecimal> getExpendituresList(List<BankTransaction> transaction) {
-        Map<String, BigDecimal> expenditures = new HashMap<>();
-
-        final BigDecimal ZERO_EXPENDITURES = new BigDecimal("0.00");
-
-        for (BankTransaction bankTransaction : transaction) {
-
-            String itemOfExpenditure = bankTransaction.getItemOfExpenditure();
-            BigDecimal expenditure = bankTransaction.getExpenditure();
-
-            if (!(expenditure.equals(ZERO_EXPENDITURES))) {
-                if (expenditures.containsKey(itemOfExpenditure)) {
-                    expenditures.put(itemOfExpenditure, expenditures.get(itemOfExpenditure).add(expenditure));
-                }
-                else expenditures.put(itemOfExpenditure, expenditure);
-            }
+        private static Map<String, BigDecimal> getExpendituresList(List<BankTransaction> transaction) {
+            return transaction.stream()
+                    .collect(Collectors.groupingBy(BankTransaction::getItemOfExpenditure,
+                            Collectors.mapping(BankTransaction::getExpenditure,
+                                     Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
         }
-        return expenditures;
-    }
 
-    private static BigDecimal getExpendituresSum(List<BankTransaction> transaction){
-        return transaction.stream().map(BankTransaction::getExpenditure).reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private static BigDecimal getIncomeSum(List<BankTransaction> transaction) {
-        return transaction.stream().map(BankTransaction::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add);
+    private static BigDecimal getSum (List<BankTransaction> transaction, Function<BankTransaction, BigDecimal> mapper) {
+        return transaction
+                .stream()
+                .map(mapper)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private static void printSum(String item, BigDecimal sum) {
@@ -111,5 +99,4 @@ public class Loader {
             System.out.printf("%-30s%,10.2f%s\n", list.getKey(), list.getValue(), " руб.");
         }
     }
-
 }
