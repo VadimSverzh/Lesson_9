@@ -1,3 +1,6 @@
+import com.sun.tools.javac.Main;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,11 +16,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Loader {
+    private static final Logger LOGGER = LogManager.getLogger(Main.class);
     private static final String URL = "http://lenta.ru/";
     private static final String TAG_ATTRIBUTE = "src";
     private static final String TAG = "img";
     private static final Path PATH_STRING =Paths.get("C:\\Users\\User\\Desktop\\Java\\Skillbox\\Lesson_9\\GetImages\\images");
-    private static boolean OVERWRITE = true;
+    private static boolean OVERWRITE = false;
 
     public static void main(String[] args) {
 
@@ -69,10 +73,11 @@ public class Loader {
                         if (overwrite) {
                             Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
                         } else Files.copy(in, path);
+                        LOGGER.info(entry.getValue());
                 } catch (FileNotFoundException ex) {
-                    System.out.println("Can't find the link " + entry.getKey());
+                        LOGGER.error("Can't find the link: {}", entry.getKey());
                 } catch (FileAlreadyExistsException ex) {
-                    System.out.println("File " + entry.getValue() + " already exists!");
+                        LOGGER.error("File {} already exists!", entry.getKey());
                 }
             }
         }

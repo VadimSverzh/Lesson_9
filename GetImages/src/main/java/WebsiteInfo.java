@@ -1,5 +1,4 @@
 public class WebsiteInfo {
-
 private String url;
 private String tag;
 private String tagAttribute;

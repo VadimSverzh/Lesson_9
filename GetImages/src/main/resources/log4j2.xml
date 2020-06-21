@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration status="FATAL">
+    <appenders>
+        <Console name="errors" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-5level - %msg%n"/>
+            <ThresholdFilter level = "error" onMatch = "ACCEPT" onMismatch = "DENY" />
+        </Console>
+        <Console name="download" target="SYSTEM_OUT">
+            <PatternLayout pattern="%msg%n" />
+            <ThresholdFilter level = "warn" onMatch = "DENY" onMismatch = "NEUTRAL" />
+        </Console>
+    </appenders>
+    <loggers>
+        <root level ="info">
+            <appender-ref ref="download" />
+            <appender-ref ref="errors" level = "warn" />
+        </root>
+    </loggers>
+</configuration>
