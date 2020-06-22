@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class Loader {
     private static final Logger LOGGER = LogManager.getLogger(Main.class);
-    private static final String URL = "http://lenta.ru/";
+    private static final String URL = "http://sendel.ru/dtest/";
     private static final String TAG_ATTRIBUTE = "src";
     private static final String TAG = "img";
     private static final Path PATH_STRING =Paths.get("C:\\Users\\User\\Desktop\\Java\\Skillbox\\Lesson_9\\GetImages\\images");
@@ -67,12 +67,13 @@ public class Loader {
 
     private static void downloadImages (boolean overwrite, Map<URI, URI> imagesLinks, Path target) throws IOException {
             for (Map.Entry<URI, URI> entry : imagesLinks.entrySet()) {
-                try {
-                    Path path = Paths.get(target + "\\" + entry.getValue());
-                    InputStream in = entry.getKey().toURL().openStream();
+                try (InputStream in = entry.getKey().toURL().openStream()) {
+                    Path path = Paths.get(target.toString(), entry.getValue().getPath());
                         if (overwrite) {
                             Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
-                        } else Files.copy(in, path);
+                        } else {
+                            Files.copy(in, path);
+                        }
                         LOGGER.info(entry.getValue());
                 } catch (FileNotFoundException ex) {
                         LOGGER.error("Can't find the link: {}", entry.getKey());
